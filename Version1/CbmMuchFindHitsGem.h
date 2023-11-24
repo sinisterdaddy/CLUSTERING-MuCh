@@ -75,6 +75,7 @@ private:
   Int_t fFlag;
   Int_t fAlgorithm;                 // Defines which algorithm to use
   Double_t fClusterSeparationTime;  // Minimum required time between two clusters
+  Double_t fMaxClusterSeprationTime;
   Double_t fThresholdRatio;         // Charge threshold ratio relative to max cluster charge
   Int_t fEvent;                     // Event counter
   Int_t fNofTimeslices;             // TimeSlice Counter
