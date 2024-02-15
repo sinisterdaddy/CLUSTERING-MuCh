@@ -1,0 +1,82 @@
+\documentclass{CBM-PR-2019}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\setlength{\titleblockheight}{35mm}
+
+\begin{document}
+\title{ 
+Time Based Clustering for Muon Chamber(MuCh)
+}
+
+\author[2]{R.~K.~Garg}
+\author[1]{V.~Singhal}
+\author[1]{S.~Chattopadhyay}
+
+%\author[2]{C. Mustermann}
+\affil[1]{Vellore Institute of Technology, AP}
+\affil[2]{Variable Energy Cyclotron Centre, Kolkata, India}
+
+\maketitle
+
+% For last few years, `unpackers' for the different subsystems in mCBM have been developed differently by each subsystem. This lead to incoherence between the subsystems and restrictions towards running in parallel with different subsystem at the same time. Stronger integration of the unpackers in a common scheme by separation between the framework bound part and the pure algorithmic part is therefore very much needed and started to be introduced for the 2021 mCBM campaign with the first subsystems readout using the CRI board~\cite{UnpackingScheme}. Algorithmic part also need to split between the algo class and the config class and must use only of standard digis classes in order to be compatible with a reconstruction chain already running on simulated data (event builder). Also in this new architecture, the monitoring of the raw data and unpacking process is moved to a separate class and performed only if an instance of it is added to the unpacking algo.
+
+This progress report highlights the advancements made in the clustering algorithm utilized for organizing detector data within the CBM setup. By addressing limitations of the previous approach and introducing dynamic adaptations to temporal patterns, the updated algorithm achieves more precise and efficient clustering. Furthermore, enhancements in spatial separation and hit formation contribute to improved accuracy and fidelity in identifying and analyzing hits within the detector system.
+
+The advancements discussed in this report are implemented within the \texttt{CbmMuchFindHitsGem}, where significant changes have been made to enhance the clustering algorithm's functionality and performance.
+
+
+The previous clustering algorithm provided a foundational framework for organizing detector data into clusters based on a fixed time interval \texttt{fClusterSeparationTime}. This approach, while effective for basic event-by-event processing, had limitations when it came to handling more complex temporal patterns within the data. Recognizing these limitations, the updated clustering algorithm introduces a series of novel conditions to dynamically adapt to the temporal characteristics of the data.
+
+Condition 1 remains rooted in the original concept of creating new time slices when the time gap between consecutive digis exceeds the predefined threshold \texttt{fClusterSeparationTime}. This ensures that events occurring after a certain time interval are grouped separately, maintaining temporal coherence within each cluster. In the code implementation, this condition is achieved by iterating through the digis and checking if the time gap (t) between consecutive digis exceeds \texttt{fClusterSeparationTime}, upon which a new time slice is created.
+
+Condition 2 represents a significant improvement by introducing a check for digis hitting already fired pads. This addition ensures that if a digi hits a pad that has already been fired within the current time slice, it is assigned to a different time slice. This refinement minimizes the risk of erroneously grouping digis that belong to distinct temporal events. The code implements this condition by maintaining a set \texttt{addressesInCurrentSlice} to track addresses within the current time slice and checking if the address of the current digi is already present in the set, indicating a duplicate hit within the same time slice.
+
+Condition 3 represents a more intricate level of refinement by considering the specific time differences between consecutive digis. It evaluates the time difference between the current digi and its neighboring digis, allowing the algorithm to adapt dynamically to the temporal distribution of events. By comparing the time differences and adjusting the time slices accordingly, the algorithm can better capture the nuanced temporal patterns present in the data.
+
+Overall, these enhancements represent a significant step forward in the clustering algorithm's capabilities. By incorporating dynamic adjustments based on real-time data characteristics, the algorithm can achieve more precise and efficient clustering, ultimately leading to improved hit detection and analysis within the detector system.
+
+
+In addition to the advancements in time-based clustering, the updated algorithm maintains and enhances spatial separation capabilities present in the previous version. After the initial time-based clustering process, the algorithm proceeds to perform spatial separation to further refine the cluster organization. This spatial separation step ensures that clustered digis are not only temporally coherent but also spatially contiguous, reflecting the physical layout and properties of the detector system. By combining both temporal and spatial considerations, the algorithm achieves a comprehensive approach to cluster formation, capturing both the temporal evolution and spatial distribution of events within the detector. This integrated approach enhances the accuracy and fidelity of the clustering process, leading to more precise identification and analysis of hits within the detector system.
+
+
+Furthermore, the updated algorithm introduces a significant improvement in hit formation within clusters. Unlike the previous version, which selected only local maxima as hits without considering the contributions from neighboring digis, the new approach incorporates the influence of all neighboring digis within the cluster during hit formation,dentifying the neighboring pads for each pad in the cluster. This is achieved using the \texttt{GetNeighbours()}.This enhancement allows the algorithm to generate hits that more accurately represent the collective signal strength and spatial distribution of the cluster. By accounting for the combined effects of neighboring digis, the algorithm produces hits that not only capture individual local maxima but also reflect the broader context of neighboring digis, Subsequently, the indices of the neighboring pads are added to the \texttt{fNeighbours} vector. This vector maintains a record of the neighboring pads for each pad in the cluster, allowing for efficient access during subsequent stages of the algorithm. leading to a more comprehensive representation of the underlying physical processes.As the algorithm progresses, local maxima within the cluster are flagged based on charge comparisons with neighboring pads. The pads corresponding to these local maxima are then added to the \texttt{fFiredPads} vector, which serves as a repository for the pads identified as local maxima and then the algorithm proceeds to create hits directly using the \texttt{CreateHits()} function.  Additionally, the algorithm addresses issues related to the storage and management of cluster count data, ensuring improved data integrity and accurate tracking and utilization of cluster information throughout the algorithmic process.
+\begin{figure}[htb]
+\begin{center}
+\includegraphics*[width=0.55\linewidth]{OnlineMQTimeCorr.jpg}
+\caption{Generated online time-correlation plots between different subsystems in the mCBM setup. Top right plot shows the time-correlation of the mMuCh detectors (both GEM and RPC combined) using this new unpacker.}
+\label{fig:mq}
+\end{center}
+\end{figure}
+
+To summarize, The updated clustering algorithm improves upon the previous version by dynamically adapting to temporal patterns and maintaining spatial separation capabilities. It enhances hit formation by considering contributions from neighboring digis within clusters, leading to more accurate representation of signal strength and spatial distribution. Additionally, the algorithm improves data integrity and management for enhanced tracking and utilization of cluster information.
+% Note: In principle for single detectors the "old" scheme/code placed in \textit{/fles/mcbm2018/...} is still valid, as long as the unpacker algorithm still matches the format of the raw data, which currently needs some tweaking.
+
+% Quality Assurance or monitoring for mMuCh has been enabled for CRI based data acquisition and online monitoring has been performed during the March 2022 data taking.
+
+% The advantage with this would be that whenever the online MQ based event building and selection is running, one would be getting his plots.
+
+% RPC    data has been integrated in the mMuCh system during Dec 2021 and the same has been enabled in the Online Monitoring.
+
+% Using this class only online monitoring is performed during the high intensity data taking.
+
+
+\begin{thebibliography}{9}   % Use for  1-9  references
+
+\bibitem{UnpackingScheme} P.-A.~Loizeau \textit{et al.}, ``A new unified architecture for unpacking, applied to mCBM data``, this report.
+
+% \bibitem{SMX} K. Kasinski \textit{et al.},
+% ``Characterization of the STS/MuCh-XYTER2, a 128-channel time and amplitude measurement IC for gas and silicon micro strip sensors'',
+% NIM A, Volume 908, 2018, Pages 225-235, ISSN 0168-9002,
+% \href{https://doi.org/10.1016/j.nima.2018.08.076}{doi:10.1016/j.nima.2018.08.076}
+
+% (BibTeX is not allowed, use bibitem only!)
+%ref1
+
+
+\end{thebibliography}
+
+
+\end{document}
